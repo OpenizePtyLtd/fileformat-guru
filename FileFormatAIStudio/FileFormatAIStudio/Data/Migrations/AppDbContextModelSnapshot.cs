@@ -233,6 +233,64 @@ namespace FileFormatAIStudio.Data.Migrations
                     b.ToTable("Messages");
                 });
 
+            modelBuilder.Entity("FileFormatAIStudio.Data.Entities.ChatSessionAttachmentEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("AttachedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ChunkCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("DocumentCategory")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FilePath")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("FileSize")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("FileType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ParserEngineUsed")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RawExtractedText")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("TokenCount")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SessionId")
+                        .HasDatabaseName("IX_ChatSessionAttachments_SessionId");
+
+                    b.ToTable("ChatSessionAttachments");
+                });
+
             modelBuilder.Entity("FileFormatAIStudio.Data.Entities.ChatSessionEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -526,6 +584,17 @@ namespace FileFormatAIStudio.Data.Migrations
                     b.Navigation("Session");
                 });
 
+            modelBuilder.Entity("FileFormatAIStudio.Data.Entities.ChatSessionAttachmentEntity", b =>
+                {
+                    b.HasOne("FileFormatAIStudio.Data.Entities.ChatSessionEntity", "Session")
+                        .WithMany("Attachments")
+                        .HasForeignKey("SessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Session");
+                });
+
             modelBuilder.Entity("FileFormatAIStudio.Data.Entities.DocumentChunkEntity", b =>
                 {
                     b.HasOne("FileFormatAIStudio.Data.Entities.KnowledgebaseDocumentEntity", "Document")
@@ -603,6 +672,8 @@ namespace FileFormatAIStudio.Data.Migrations
 
             modelBuilder.Entity("FileFormatAIStudio.Data.Entities.ChatSessionEntity", b =>
                 {
+                    b.Navigation("Attachments");
+
                     b.Navigation("Messages");
 
                     b.Navigation("SessionKnowledgebases");

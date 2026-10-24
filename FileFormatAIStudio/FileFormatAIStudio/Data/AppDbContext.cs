@@ -22,6 +22,7 @@ namespace FileFormatAIStudio.Data
         public DbSet<BenchmarkDocumentEntity> BenchmarkDocuments => Set<BenchmarkDocumentEntity>();
         public DbSet<BenchmarkRunResultEntity> BenchmarkRunResults => Set<BenchmarkRunResultEntity>();
         public DbSet<BenchmarkMetricResultEntity> BenchmarkMetricResults => Set<BenchmarkMetricResultEntity>();
+        public DbSet<ChatSessionAttachmentEntity> ChatSessionAttachments => Set<ChatSessionAttachmentEntity>();
 
         public AppDbContext()
         {
@@ -171,6 +172,18 @@ namespace FileFormatAIStudio.Data
             {
                 entity.HasIndex(m => m.RunResultId)
                     .HasDatabaseName("IX_BenchmarkMetricResults_RunResultId");
+            });
+
+            // ChatSessionAttachmentEntity Configuration & Indexes
+            modelBuilder.Entity<ChatSessionAttachmentEntity>(entity =>
+            {
+                entity.HasOne(a => a.Session)
+                    .WithMany(s => s.Attachments)
+                    .HasForeignKey(a => a.SessionId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(a => a.SessionId)
+                    .HasDatabaseName("IX_ChatSessionAttachments_SessionId");
             });
         }
     }

@@ -17,6 +17,7 @@ namespace FileFormatAIStudio.Data.Entities
 
         public List<ChatMessageEntity> Messages { get; set; } = new();
         public List<SessionKnowledgebaseEntity> SessionKnowledgebases { get; set; } = new();
+        public List<ChatSessionAttachmentEntity> Attachments { get; set; } = new();
     }
 }
 
