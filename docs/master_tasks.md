@@ -121,11 +121,11 @@
 | **TASK-105** | #136775 | 14. Document OCR & Vision Intelligence | `test(ocr): comprehensive unit and integration tests for OCR engines, image extraction, and parser pipelines` | M8 | TASK-99, TASK-100, TASK-101, TASK-102 | ✅ Completed |
 | **TASK-106** | #136786 | 15. Document Chat Attachments | `feat(data): add ChatSessionAttachment entity and EF Core migration` | M9 | TASK-02, TASK-17 | ✅ Completed |
 | **TASK-107** | #136787 | 15. Document Chat Attachments | `feat(service): implement IChatAttachmentService for parsing and context budgeting` | M9 | TASK-106, TASK-76 | ✅ Completed |
-| **TASK-108** | #136788 | 15. Document Chat Attachments | `feat(ui): add drag-and-drop file overlay and attachment picker to ChatPage` | M9 | TASK-107 | ⏳ Pending |
-| **TASK-109** | #136789 | 15. Document Chat Attachments | `feat(ui): add attached document chip list with detach and text inspection` | M9 | TASK-108 | ⏳ Pending |
-| **TASK-110** | #136790 | 15. Document Chat Attachments | `feat(chat): augment prompt generation with attached document context and source citations` | M9 | TASK-107, TASK-109 | ⏳ Pending |
-| **TASK-111** | #136791 | 15. Document Chat Attachments | `feat(chat): implement ephemeral in-memory chunking for oversized attachments` | M9 | TASK-110 | ⏳ Pending |
-| **TASK-112** | #136792 | 15. Document Chat Attachments | `test(chat): comprehensive unit and integration tests for document chat attachments` | M9 | TASK-106, TASK-107, TASK-110, TASK-111 | ⏳ Pending |
+| **TASK-108** | #136788 | 15. Document Chat Attachments | `feat(ui): add drag-and-drop file overlay and attachment picker to ChatPage` | M9 | TASK-107 | ✅ Completed |
+| **TASK-109** | #136789 | 15. Document Chat Attachments | `feat(ui): add attached document chip list with detach and text inspection` | M9 | TASK-108 | ✅ Completed |
+| **TASK-110** | #136790 | 15. Document Chat Attachments | `feat(chat): augment prompt generation with attached document context and source citations` | M9 | TASK-107, TASK-109 | ✅ Completed |
+| **TASK-111** | #136791 | 15. Document Chat Attachments | `feat(chat): implement ephemeral in-memory chunking for oversized attachments` | M9 | TASK-110 | ✅ Completed |
+| **TASK-112** | #136792 | 15. Document Chat Attachments | `test(chat): comprehensive unit and integration tests for document chat attachments` | M9 | TASK-106, TASK-107, TASK-110, TASK-111 | ✅ Completed |
 
 ---
 
@@ -333,6 +333,62 @@ flowchart TD
     T93 --> T95
     T90 --> T96
     T95 --> T96
+
+    subgraph DocOcrVisionM8 ["Phase 14: Document OCR & Vision Intelligence (M8)"]
+        T97["TASK-97 (#136767)<br/>IOcrEngine &amp; Windows OCR"]
+        T98["TASK-98 (#136768)<br/>OcrEnginePreferenceService"]
+        T99["TASK-99 (#136769)<br/>PDF Hybrid OCR Extraction"]
+        T100["TASK-100 (#136770)<br/>Word &amp; PPT Embedded OCR"]
+        T101["TASK-101 (#136771)<br/>Standalone Image Document Parser"]
+        T102["TASK-102 (#136772)<br/>AI Semantic Vision Descriptions"]
+        T103["TASK-103 (#136773)<br/>OCR &amp; Vision Settings UI"]
+        T104["TASK-104 (#136774)<br/>Images &amp; OCR Inspector Tab"]
+        T105["TASK-105 (#136775)<br/>OCR &amp; Vision Test Suite"]
+    end
+
+    subgraph DocumentAttachmentsM9 ["Phase 15: Document Chat Attachments (M9)"]
+        T106["TASK-106 (#136786)<br/>ChatSessionAttachment Entity &amp; Migration"]
+        T107["TASK-107 (#136787)<br/>IChatAttachmentService &amp; Budgeting"]
+        T108["TASK-108 (#136788)<br/>Drag-and-Drop Overlay &amp; File Picker"]
+        T109["TASK-109 (#136789)<br/>Attachment Chip List &amp; Text Inspector"]
+        T110["TASK-110 (#136790)<br/>Prompt Augmentation &amp; Citations"]
+        T111["TASK-111 (#136791)<br/>Ephemeral In-Memory Chunking"]
+        T112["TASK-112 (#136792)<br/>Attachment Unit &amp; Workflow Tests"]
+    end
+
+    %% M8 Dependencies
+    T76 --> T97
+    T97 --> T98
+    T97 --> T99
+    T98 --> T99
+    T97 --> T100
+    T98 --> T100
+    T97 --> T101
+    T98 --> T102
+    T98 --> T103
+    T102 --> T103
+    T99 --> T104
+    T100 --> T104
+    T101 --> T104
+    T99 --> T105
+    T100 --> T105
+    T101 --> T105
+    T102 --> T105
+
+    %% M9 Dependencies
+    T02 --> T106
+    T17 --> T106
+    T106 --> T107
+    T76 --> T107
+    T107 --> T108
+    T108 --> T109
+    T107 --> T110
+    T109 --> T110
+    T110 --> T111
+    T106 --> T112
+    T107 --> T112
+    T110 --> T112
+    T111 --> T112
 ```
 
 ---
