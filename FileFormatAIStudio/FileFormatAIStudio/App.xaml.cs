@@ -74,6 +74,7 @@ namespace FileFormatAIStudio
             services.AddScoped<ISettingsService, SettingsService>();
             services.AddScoped<IChatSessionService, ChatSessionService>();
             services.AddScoped<IChatExecutionService, ChatExecutionService>();
+            services.AddScoped<IChatAttachmentService, ChatAttachmentService>();
             services.AddSingleton<IOcrEngine, WindowsNativeOcrEngine>();
             services.AddSingleton<IImageExtractorService, ImageExtractorService>();
             services.AddScoped<IVisionDescriptionService, VisionDescriptionService>();

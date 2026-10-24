@@ -120,7 +120,7 @@
 | **TASK-104** | #136774 | 14. Document OCR & Vision Intelligence | `feat(ui): add Images & OCR tab in Extracted Text Viewer and diff inspector` | M8 | TASK-99, TASK-100, TASK-101 | ✅ Completed |
 | **TASK-105** | #136775 | 14. Document OCR & Vision Intelligence | `test(ocr): comprehensive unit and integration tests for OCR engines, image extraction, and parser pipelines` | M8 | TASK-99, TASK-100, TASK-101, TASK-102 | ✅ Completed |
 | **TASK-106** | #136786 | 15. Document Chat Attachments | `feat(data): add ChatSessionAttachment entity and EF Core migration` | M9 | TASK-02, TASK-17 | ✅ Completed |
-| **TASK-107** | #136787 | 15. Document Chat Attachments | `feat(service): implement IChatAttachmentService for parsing and context budgeting` | M9 | TASK-106, TASK-76 | ⏳ Pending |
+| **TASK-107** | #136787 | 15. Document Chat Attachments | `feat(service): implement IChatAttachmentService for parsing and context budgeting` | M9 | TASK-106, TASK-76 | ✅ Completed |
 | **TASK-108** | #136788 | 15. Document Chat Attachments | `feat(ui): add drag-and-drop file overlay and attachment picker to ChatPage` | M9 | TASK-107 | ⏳ Pending |
 | **TASK-109** | #136789 | 15. Document Chat Attachments | `feat(ui): add attached document chip list with detach and text inspection` | M9 | TASK-108 | ⏳ Pending |
 | **TASK-110** | #136790 | 15. Document Chat Attachments | `feat(chat): augment prompt generation with attached document context and source citations` | M9 | TASK-107, TASK-109 | ⏳ Pending |
