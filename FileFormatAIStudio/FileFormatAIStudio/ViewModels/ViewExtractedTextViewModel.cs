@@ -174,6 +174,35 @@ namespace FileFormatAIStudio.ViewModels
             }
         }
 
+        /// <summary>
+        /// Loads an attached chat document for text inspection.
+        /// </summary>
+        public void LoadAttachment(ChatSessionAttachmentEntity attachment)
+        {
+            if (attachment == null) return;
+
+            DocumentId = attachment.Id;
+            IsLoading = false;
+            ErrorMessage = attachment.ErrorMessage;
+            HasError = !string.IsNullOrEmpty(attachment.ErrorMessage);
+            DocumentName = attachment.FileName;
+            FileType = attachment.FileType?.TrimStart('.').ToUpperInvariant() ?? "";
+            FileSize = attachment.FileSize;
+            FormattedFileSize = KnowledgebaseItemViewModel.FormatBytes(attachment.FileSize);
+            ParserEngineUsed = FormatParser(attachment.ParserEngineUsed);
+            Status = attachment.Status;
+            ChunkCount = attachment.ChunkCount;
+            ExtractedText = attachment.RawExtractedText ?? string.Empty;
+            ComputeTextStatistics(ExtractedText);
+
+            Chunks.Clear();
+            OcrItems.Clear();
+            OcrItemCount = 0;
+            OnPropertyChanged(nameof(HasExtractedText));
+            OnPropertyChanged(nameof(HasChunks));
+            OnPropertyChanged(nameof(HasOcrItems));
+        }
+
         private void ComputeTextStatistics(string text)
         {
             if (string.IsNullOrEmpty(text))

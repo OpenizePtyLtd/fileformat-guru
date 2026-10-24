@@ -7,6 +7,10 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Navigation;
 using Windows.System;
+using System.Linq;
+using System.Collections.Generic;
+using Windows.ApplicationModel.DataTransfer;
+using FileFormatAIStudio.Views.Dialogs;
 
 namespace FileFormatAIStudio.Views
 {
@@ -70,6 +74,107 @@ namespace FileFormatAIStudio.Views
             {
                 AttachKbFlyout?.Hide();
                 await ViewModel.AttachKnowledgebaseCommand.ExecuteAsync(kb);
+            }
+        }
+
+        private void OnPageDragOver(object sender, DragEventArgs e)
+        {
+            if (e.DataView.Contains(StandardDataFormats.StorageItems))
+            {
+                e.AcceptedOperation = DataPackageOperation.Copy;
+                e.DragUIOverride.Caption = "Attach document to chat";
+                e.DragUIOverride.IsCaptionVisible = true;
+                DragDropOverlay.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void OnPageDragLeave(object sender, DragEventArgs e)
+        {
+            DragDropOverlay.Visibility = Visibility.Collapsed;
+        }
+
+        private async void OnPageDrop(object sender, DragEventArgs e)
+        {
+            DragDropOverlay.Visibility = Visibility.Collapsed;
+            if (e.DataView.Contains(StandardDataFormats.StorageItems))
+            {
+                var items = await e.DataView.GetStorageItemsAsync();
+                var paths = items.OfType<Windows.Storage.IStorageFile>()
+                    .Select(f => f.Path)
+                    .Where(p => !string.IsNullOrWhiteSpace(p))
+                    .ToList();
+
+                if (paths.Count > 0)
+                {
+                    await ViewModel.AttachFilesCommand.ExecuteAsync(paths);
+                }
+            }
+        }
+
+        private async void OnAttachButtonClicked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var picker = new Windows.Storage.Pickers.FileOpenPicker();
+                var hwnd = App.MainWindowInstance != null
+                    ? WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindowInstance)
+                    : IntPtr.Zero;
+
+                if (hwnd != IntPtr.Zero)
+                {
+                    WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+                }
+
+                picker.ViewMode = Windows.Storage.Pickers.PickerViewMode.List;
+                picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary;
+
+                picker.FileTypeFilter.Add(".docx");
+                picker.FileTypeFilter.Add(".doc");
+                picker.FileTypeFilter.Add(".xlsx");
+                picker.FileTypeFilter.Add(".xls");
+                picker.FileTypeFilter.Add(".pptx");
+                picker.FileTypeFilter.Add(".ppt");
+                picker.FileTypeFilter.Add(".pdf");
+                picker.FileTypeFilter.Add(".txt");
+                picker.FileTypeFilter.Add(".csv");
+                picker.FileTypeFilter.Add(".md");
+                picker.FileTypeFilter.Add(".png");
+                picker.FileTypeFilter.Add(".jpg");
+                picker.FileTypeFilter.Add(".jpeg");
+
+                var files = await picker.PickMultipleFilesAsync();
+                if (files != null && files.Count > 0)
+                {
+                    var paths = files.Select(f => f.Path).ToList();
+                    await ViewModel.AttachFilesCommand.ExecuteAsync(paths);
+                }
+            }
+            catch (Exception ex)
+            {
+                ViewModel.StatusText = $"Attachment error: {ex.Message}";
+            }
+        }
+
+        private async void OnInspectAttachmentClick(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is ChatAttachmentItemViewModel att)
+            {
+                var services = ((App)Application.Current).Services;
+                var vm = services.GetRequiredService<ViewExtractedTextViewModel>();
+                var dialog = new ViewExtractedTextDialog(vm)
+                {
+                    XamlRoot = this.Content.XamlRoot
+                };
+                dialog.InitializeForAttachment(att.Entity);
+                await dialog.ShowAsync();
+            }
+        }
+
+        private async void OnDetachAttachmentClick(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is ChatAttachmentItemViewModel att)
+            {
+                await ViewModel.DetachDocumentCommand.ExecuteAsync(att);
             }
         }
 

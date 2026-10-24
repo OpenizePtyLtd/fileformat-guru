@@ -25,6 +25,11 @@ namespace FileFormatAIStudio.Views.Dialogs
             await ViewModel.LoadDocumentAsync(documentId, meta);
         }
 
+        public void InitializeForAttachment(ChatSessionAttachmentEntity attachment)
+        {
+            ViewModel.LoadAttachment(attachment);
+        }
+
         private void OnPrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
         {
             // Do not close the dialog when copying to clipboard so user can continue reading

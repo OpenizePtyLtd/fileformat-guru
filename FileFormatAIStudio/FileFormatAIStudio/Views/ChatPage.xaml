@@ -9,7 +9,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid RowSpacing="12" Padding="20,16,20,16">
+    <Grid RowSpacing="12" Padding="20,16,20,16" AllowDrop="True" DragOver="OnPageDragOver" DragLeave="OnPageDragLeave" Drop="OnPageDrop">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -332,31 +332,144 @@
             </ScrollViewer>
         </Border>
 
-        <!-- Bottom Prompt Input Area -->
-        <Grid Grid.Row="3" ColumnSpacing="10">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
+        <!-- Bottom Prompt Input Area with Attachment Chips -->
+        <StackPanel Grid.Row="3" Spacing="6">
+            <!-- Attached Documents Chips Row -->
+            <Grid Visibility="{x:Bind local:ChatPage.ToVisibility(ViewModel.HasAttachedDocuments), Mode=OneWay}">
+                <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                              VerticalScrollBarVisibility="Disabled"
+                              HorizontalScrollMode="Enabled"
+                              VerticalScrollMode="Disabled">
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <TextBlock Text="Attached:"
+                                   FontSize="11"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <ItemsControl ItemsSource="{x:Bind ViewModel.AttachedDocuments, Mode=OneWay}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" Spacing="6" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:ChatAttachmentItemViewModel">
+                                    <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="14"
+                                            Padding="8,3,4,3">
+                                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                            <Button Style="{ThemeResource SubtleButtonStyle}"
+                                                    Padding="0"
+                                                    Click="OnInspectAttachmentClick"
+                                                    Tag="{x:Bind}"
+                                                    ToolTipService.ToolTip="Click to inspect extracted text">
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    <FontIcon Glyph="{x:Bind CategoryGlyph, Mode=OneWay}"
+                                                              FontSize="11"
+                                                              Foreground="{ThemeResource AccentAAFillColorDefaultBrush}" />
+                                                    <TextBlock Text="{x:Bind FileName, Mode=OneWay}"
+                                                               FontSize="12"
+                                                               FontWeight="SemiBold"
+                                                               MaxWidth="160"
+                                                               TextTrimming="CharacterEllipsis" />
+                                                    <Border Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                                            CornerRadius="8"
+                                                            Padding="6,1">
+                                                        <TextBlock Text="{x:Bind TokenBadgeText, Mode=OneWay}"
+                                                                   FontSize="10"
+                                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                                    </Border>
+                                                </StackPanel>
+                                            </Button>
+                                            <Button Style="{ThemeResource SubtleButtonStyle}"
+                                                    Padding="2"
+                                                    Height="20"
+                                                    Width="20"
+                                                    CornerRadius="10"
+                                                    Click="OnDetachAttachmentClick"
+                                                    Tag="{x:Bind}"
+                                                    ToolTipService.ToolTip="Detach document">
+                                                <FontIcon Glyph="&#xE711;" FontSize="8" />
+                                            </Button>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <ProgressRing IsActive="{x:Bind ViewModel.IsAttaching, Mode=OneWay}"
+                                      Width="16" Height="16"
+                                      Visibility="{x:Bind local:ChatPage.ToVisibility(ViewModel.IsAttaching), Mode=OneWay}" />
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
 
-            <TextBox x:Name="PromptTextBox"
-                     Grid.Column="0"
-                     PlaceholderText="Type your prompt here (Enter to send, Shift+Enter for new line)..."
-                     Text="{x:Bind ViewModel.InputText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     AcceptsReturn="True"
-                     TextWrapping="Wrap"
-                     MaxHeight="120"
-                     PreviewKeyDown="OnPromptPreviewKeyDown" />
+            <!-- Input Box and Action Buttons -->
+            <Grid ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
 
-            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Bottom">
-                <Button Style="{ThemeResource AccentButtonStyle}"
+                <Button x:Name="AttachButton"
+                        Grid.Column="0"
                         Height="38"
-                        Width="44"
-                        ToolTipService.ToolTip="Send Message"
-                        Command="{x:Bind ViewModel.SendMessageCommand}">
-                    <FontIcon Glyph="&#xE724;" FontSize="14" />
+                        Width="38"
+                        Padding="0"
+                        VerticalAlignment="Bottom"
+                        ToolTipService.ToolTip="Attach documents to chat"
+                        Click="OnAttachButtonClicked"
+                        Style="{ThemeResource SubtleButtonStyle}">
+                    <FontIcon Glyph="&#xE723;" FontSize="15" />
                 </Button>
-            </StackPanel>
+
+                <TextBox x:Name="PromptTextBox"
+                         Grid.Column="1"
+                         PlaceholderText="Type your prompt here (Enter to send, Shift+Enter for new line)..."
+                         Text="{x:Bind ViewModel.InputText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         MaxHeight="120"
+                         PreviewKeyDown="OnPromptPreviewKeyDown" />
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Bottom">
+                    <Button Style="{ThemeResource AccentButtonStyle}"
+                            Height="38"
+                            Width="44"
+                            ToolTipService.ToolTip="Send Message"
+                            Command="{x:Bind ViewModel.SendMessageCommand}">
+                        <FontIcon Glyph="&#xE724;" FontSize="14" />
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </StackPanel>
+
+        <!-- Drag & Drop Overlay (TASK-108) -->
+        <Grid x:Name="DragDropOverlay"
+              Grid.RowSpan="4"
+              Visibility="Collapsed"
+              Background="{ThemeResource LayerFillColorDefaultBrush}"
+              Opacity="0.96"
+              Canvas.ZIndex="1000">
+            <Border BorderBrush="{ThemeResource AccentFillColorDefaultBrush}"
+                    BorderThickness="2"
+                    CornerRadius="16"
+                    Margin="32"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="14">
+                    <FontIcon Glyph="&#xE898;" FontSize="52" Foreground="{ThemeResource AccentFillColorDefaultBrush}" HorizontalAlignment="Center" />
+                    <TextBlock Text="Drop documents here to attach to chat"
+                               Style="{ThemeResource SubtitleTextBlockStyle}"
+                               FontWeight="SemiBold"
+                               HorizontalAlignment="Center" />
+                    <TextBlock Text="Supports PDF, Word, Excel, PowerPoint, Text, and Images"
+                               FontSize="12"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               HorizontalAlignment="Center" />
+                </StackPanel>
+            </Border>
         </Grid>
     </Grid>
 </Page>
