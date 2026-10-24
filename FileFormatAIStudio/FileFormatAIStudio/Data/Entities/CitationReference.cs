@@ -20,7 +20,9 @@ namespace FileFormatAIStudio.Data.Entities
 
         public string DisplayIndex => $"[{Index}]";
         public string PageOrSectionDisplay => PageOrSectionNumber > 0 ? $"p. {PageOrSectionNumber}" : "sec. 1";
-        public string SourceHeaderInfo => $"KB: {KnowledgebaseName} • {PageOrSectionDisplay}";
+        public string SourceHeaderInfo => KnowledgebaseName == "Attached Document"
+            ? $"Attached: {DocumentName} • {PageOrSectionDisplay}"
+            : $"KB: {KnowledgebaseName} • {PageOrSectionDisplay}";
         public string MatchScoreText => $"{(int)Math.Round(Score * 100)}% match";
     }
 }

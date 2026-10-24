@@ -21,6 +21,8 @@ namespace FileFormatAIStudio.ViewModels
         private readonly IChatExecutionService _chatExecutionService;
         private readonly ISettingsService _settingsService;
         private readonly IKnowledgebaseService _knowledgebaseService;
+        private readonly IChatAttachmentService? _attachmentService;
+        private readonly ITextChunker? _textChunker;
 
         private CancellationTokenSource? _cts;
 
@@ -42,11 +44,22 @@ namespace FileFormatAIStudio.ViewModels
         [ObservableProperty]
         private ObservableCollection<KnowledgebaseEntity> _availableKnowledgebasesToAttach = new();
 
+        [ObservableProperty]
+        private ObservableCollection<ChatAttachmentItemViewModel> _attachedDocuments = new();
+
+        [ObservableProperty]
+        private bool _isAttaching;
+
         public bool HasAttachedKnowledgebases => AttachedKnowledgebases.Count > 0;
         public bool HasAvailableKnowledgebases => AvailableKnowledgebasesToAttach.Count > 0;
         public string AttachedKnowledgebasesCountText => AttachedKnowledgebases.Count == 1
             ? "1 knowledgebase attached"
             : $"{AttachedKnowledgebases.Count} knowledgebases attached";
+
+        public bool HasAttachedDocuments => AttachedDocuments.Count > 0;
+        public string AttachedDocumentsCountText => AttachedDocuments.Count == 1
+            ? "1 document attached"
+            : $"{AttachedDocuments.Count} documents attached";
 
         [ObservableProperty]
         private string _inputText = string.Empty;
@@ -63,12 +76,16 @@ namespace FileFormatAIStudio.ViewModels
             IChatSessionService sessionService,
             IChatExecutionService chatExecutionService,
             ISettingsService settingsService,
-            IKnowledgebaseService knowledgebaseService)
+            IKnowledgebaseService knowledgebaseService,
+            IChatAttachmentService? attachmentService = null,
+            ITextChunker? textChunker = null)
         {
             _sessionService = sessionService;
             _chatExecutionService = chatExecutionService;
             _settingsService = settingsService;
             _knowledgebaseService = knowledgebaseService;
+            _attachmentService = attachmentService;
+            _textChunker = textChunker;
         }
 
         public async Task InitializeAsync(Guid? sessionId = null)
@@ -144,11 +161,13 @@ namespace FileFormatAIStudio.ViewModels
                 }
 
                 await RefreshKnowledgebasesAsync();
+                await RefreshAttachmentsAsync();
             }
             else
             {
                 AttachedKnowledgebases.Clear();
                 AvailableKnowledgebasesToAttach.Clear();
+                AttachedDocuments.Clear();
                 UpdateKnowledgebaseVisibilityFlags();
             }
 
@@ -237,6 +256,103 @@ namespace FileFormatAIStudio.ViewModels
                 }
             }
 
+            // 3b. Attached Documents Processing & Prompt Augmentation (TASK-110 & TASK-111)
+            var readyAttachments = AttachedDocuments.Where(a => a.IsReady && !string.IsNullOrWhiteSpace(a.RawExtractedText)).ToList();
+            var combinedCitations = new List<CitationReference>(citations);
+
+            if (readyAttachments.Count > 0)
+            {
+                int modelWindow = 8192;
+                var budget = _attachmentService != null
+                    ? _attachmentService.EvaluateBudget(readyAttachments.Select(a => a.Entity).ToList(), modelWindow, reservedPromptTokens: 2500)
+                    : new AttachmentBudgetResult { FitsInline = true };
+
+                var docSb = new System.Text.StringBuilder();
+                int nextCitationIndex = combinedCitations.Count + 1;
+
+                if (budget.FitsInline)
+                {
+                    // Inline prompt augmentation (TASK-110)
+                    docSb.AppendLine("--- BEGIN ATTACHED DOCUMENTS ---");
+                    foreach (var att in readyAttachments)
+                    {
+                        docSb.AppendLine($"[Attached Document: {att.FileName} (Category: {att.DocumentCategory}, Est. Tokens: {att.TokenCount})]");
+                        docSb.AppendLine(att.RawExtractedText);
+                        docSb.AppendLine();
+
+                        string snippet = att.RawExtractedText!.Length > 200
+                            ? att.RawExtractedText.Substring(0, 200) + "..."
+                            : att.RawExtractedText;
+
+                        combinedCitations.Add(new CitationReference
+                        {
+                            Index = nextCitationIndex++,
+                            ChunkId = att.Id,
+                            DocumentId = att.Id,
+                            KnowledgebaseId = Guid.Empty,
+                            KnowledgebaseName = "Attached Document",
+                            DocumentName = att.FileName,
+                            PageOrSectionNumber = 1,
+                            Snippet = snippet,
+                            Score = 1.0f
+                        });
+                    }
+                    docSb.AppendLine("--- END ATTACHED DOCUMENTS ---");
+                }
+                else
+                {
+                    // Ephemeral in-memory chunking for oversized attachments (TASK-111)
+                    docSb.AppendLine("--- BEGIN RELEVANT EXCERPTS FROM ATTACHED DOCUMENTS ---");
+                    var chunker = _textChunker ?? new TextChunker();
+
+                    foreach (var att in readyAttachments)
+                    {
+                        var chunks = chunker.ChunkText(att.RawExtractedText!);
+                        var scoredChunks = RankChunksForPrompt(userPrompt, chunks, topK: 3);
+
+                        foreach (var chunk in scoredChunks)
+                        {
+                            docSb.AppendLine($"[Source: {att.FileName} (Section {chunk.SequenceIndex + 1})]");
+                            docSb.AppendLine(chunk.Content);
+                            docSb.AppendLine();
+
+                            string snippet = chunk.Content.Length > 200
+                                ? chunk.Content.Substring(0, 200) + "..."
+                                : chunk.Content;
+
+                            combinedCitations.Add(new CitationReference
+                            {
+                                Index = nextCitationIndex++,
+                                ChunkId = chunk.Id,
+                                DocumentId = att.Id,
+                                KnowledgebaseId = Guid.Empty,
+                                KnowledgebaseName = "Attached Document",
+                                DocumentName = att.FileName,
+                                PageOrSectionNumber = chunk.SequenceIndex + 1,
+                                Snippet = snippet,
+                                Score = 0.9f
+                            });
+                        }
+                    }
+                    docSb.AppendLine("--- END RELEVANT EXCERPTS FROM ATTACHED DOCUMENTS ---");
+                }
+
+                var attachmentPromptText = docSb.ToString();
+                if (!string.IsNullOrWhiteSpace(groundedSystemPrompt))
+                {
+                    groundedSystemPrompt = $"{groundedSystemPrompt}\n\n{attachmentPromptText}\nWhen answering, cite information from the attached documents and reference their names or indices.";
+                }
+                else
+                {
+                    groundedSystemPrompt = $"You are a helpful assistant. Use the following attached document context to answer the user's questions:\n\n{attachmentPromptText}\nWhen quoting or citing information, reference the document name or citation index.";
+                }
+            }
+
+            if (combinedCitations.Count > 0)
+            {
+                assistantMsgVm.LoadCitations(combinedCitations);
+            }
+
             // 4. Build History for Microsoft.Extensions.AI
             var history = new List<ChatMessage>();
             if (!string.IsNullOrWhiteSpace(groundedSystemPrompt))
@@ -289,8 +405,8 @@ namespace FileFormatAIStudio.ViewModels
                 // Save final assistant message to DB with CitationJson
                 if (!string.IsNullOrWhiteSpace(assistantMsgVm.Content))
                 {
-                    string? citationJson = citations.Count > 0
-                        ? JsonSerializer.Serialize(citations)
+                    string? citationJson = combinedCitations.Count > 0
+                        ? JsonSerializer.Serialize(combinedCitations)
                         : null;
 
                     var assistantEntity = await _sessionService.AddMessageAsync(
@@ -325,6 +441,7 @@ namespace FileFormatAIStudio.ViewModels
             {
                 AttachedKnowledgebases.Clear();
                 AvailableKnowledgebasesToAttach.Clear();
+                AttachedDocuments.Clear();
                 UpdateKnowledgebaseVisibilityFlags();
                 return;
             }
@@ -370,6 +487,112 @@ namespace FileFormatAIStudio.ViewModels
             }
 
             UpdateKnowledgebaseVisibilityFlags();
+        }
+
+        [RelayCommand]
+        public void UpdateAttachmentVisibilityFlags()
+        {
+            OnPropertyChanged(nameof(HasAttachedDocuments));
+            OnPropertyChanged(nameof(AttachedDocumentsCountText));
+        }
+
+        public async Task RefreshAttachmentsAsync()
+        {
+            if (CurrentSession == null || _attachmentService == null)
+            {
+                AttachedDocuments.Clear();
+                UpdateAttachmentVisibilityFlags();
+                return;
+            }
+
+            var attachments = await _attachmentService.GetSessionAttachmentsAsync(CurrentSession.Id);
+            AttachedDocuments.Clear();
+            foreach (var a in attachments)
+            {
+                AttachedDocuments.Add(new ChatAttachmentItemViewModel(a));
+            }
+            UpdateAttachmentVisibilityFlags();
+        }
+
+        [RelayCommand]
+        public async Task AttachFilesAsync(IEnumerable<string> filePaths)
+        {
+            if (CurrentSession == null || filePaths == null || _attachmentService == null) return;
+
+            IsAttaching = true;
+            StatusText = "Attaching and parsing documents...";
+
+            try
+            {
+                foreach (var path in filePaths)
+                {
+                    if (string.IsNullOrWhiteSpace(path)) continue;
+
+                    var entity = await _attachmentService.AttachDocumentAsync(CurrentSession.Id, path);
+                    var existing = AttachedDocuments.FirstOrDefault(a => a.Id == entity.Id);
+                    if (existing != null)
+                    {
+                        existing.UpdateFromEntity(entity);
+                    }
+                    else
+                    {
+                        AttachedDocuments.Add(new ChatAttachmentItemViewModel(entity));
+                    }
+                }
+                StatusText = "Ready";
+            }
+            catch (Exception ex)
+            {
+                StatusText = $"Attachment error: {ex.Message}";
+            }
+            finally
+            {
+                IsAttaching = false;
+                UpdateAttachmentVisibilityFlags();
+            }
+        }
+
+        [RelayCommand]
+        public async Task DetachDocumentAsync(ChatAttachmentItemViewModel? item)
+        {
+            if (item == null || _attachmentService == null) return;
+
+            await _attachmentService.DetachDocumentAsync(item.Id);
+            AttachedDocuments.Remove(item);
+            UpdateAttachmentVisibilityFlags();
+        }
+
+        public static IReadOnlyList<TextChunk> RankChunksForPrompt(string prompt, IReadOnlyList<TextChunk> chunks, int topK = 3)
+        {
+            if (chunks == null || chunks.Count == 0) return Array.Empty<TextChunk>();
+            if (string.IsNullOrWhiteSpace(prompt)) return chunks.Take(topK).ToList();
+
+            var promptTerms = prompt.Split(new[] { ' ', '\t', '\r', '\n', ',', '.', ';', '?', '!' }, StringSplitOptions.RemoveEmptyEntries)
+                .Where(t => t.Length > 2)
+                .Select(t => t.ToLowerInvariant())
+                .Distinct()
+                .ToHashSet();
+
+            if (promptTerms.Count == 0) return chunks.Take(topK).ToList();
+
+            return chunks
+                .Select(chunk =>
+                {
+                    int score = 0;
+                    string chunkLower = chunk.Content.ToLowerInvariant();
+                    foreach (var term in promptTerms)
+                    {
+                        if (chunkLower.Contains(term))
+                        {
+                            score += 1;
+                        }
+                    }
+                    return (Chunk: chunk, Score: score);
+                })
+                .OrderByDescending(x => x.Score)
+                .Take(topK)
+                .Select(x => x.Chunk)
+                .ToList();
         }
 
         [RelayCommand]
