@@ -126,6 +126,7 @@
 | **TASK-110** | #136790 | 15. Document Chat Attachments | `feat(chat): augment prompt generation with attached document context and source citations` | M9 | TASK-107, TASK-109 | ✅ Completed |
 | **TASK-111** | #136791 | 15. Document Chat Attachments | `feat(chat): implement ephemeral in-memory chunking for oversized attachments` | M9 | TASK-110 | ✅ Completed |
 | **TASK-112** | #136792 | 15. Document Chat Attachments | `test(chat): comprehensive unit and integration tests for document chat attachments` | M9 | TASK-106, TASK-107, TASK-110, TASK-111 | ✅ Completed |
+| **TASK-113** | #137569 | 16. Dependency Security & Hardening | `fix(deps): bump System.Security.Cryptography.Pkcs to 10.0.14 to remediate GHSA-846f-f764-76mx and GHSA-2fmv-rv2c-59x7` | M9 | TASK-02 | ✅ Completed |
 
 ---
 
@@ -356,6 +357,10 @@ flowchart TD
         T112["TASK-112 (#136792)<br/>Attachment Unit &amp; Workflow Tests"]
     end
 
+    subgraph DependencySecurityM9 ["Phase 16: Dependency Security & Hardening (M9)"]
+        T113["TASK-113 (#137569)<br/>Pkcs Vulnerability Remediation"]
+    end
+
     %% M8 Dependencies
     T76 --> T97
     T97 --> T98
@@ -389,6 +394,9 @@ flowchart TD
     T107 --> T112
     T110 --> T112
     T111 --> T112
+
+    %% M9 Dependency Security
+    T02 --> T113
 ```
 
 ---
