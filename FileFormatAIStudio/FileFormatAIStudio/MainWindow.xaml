@@ -8,7 +8,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    Title="FileFormat Studio">
+    Title="FileFormat Guru">
 
     <Window.SystemBackdrop>
         <MicaBackdrop />
@@ -16,7 +16,7 @@
 
     <Grid>
         <NavigationView x:Name="RootNavigationView"
-                        PaneTitle="FileFormat Studio"
+                        PaneTitle="FileFormat Guru"
                         IsBackButtonVisible="Auto"
                         BackRequested="OnBackRequested"
                         IsSettingsVisible="True"

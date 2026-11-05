@@ -14,6 +14,9 @@
     <Version Condition="'$(Version)' == ''">1.0.0</Version>
     <NoWarn>$(NoWarn);MVVMTK0045</NoWarn>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <Product>FileFormat Guru</Product>
+    <AssemblyTitle>FileFormat Guru</AssemblyTitle>
+    <Description>FileFormat Guru - Intelligent Desktop Workstation for File Formats</Description>
   </PropertyGroup>
 
   <!-- Automated Date + Monthly Commit Count Versioning: x.y.z

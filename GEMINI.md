@@ -1,7 +1,7 @@
-# Project Guidelines & Agent Context: FileFormatAIStudio
+# Project Guidelines & Agent Context: FileFormat Guru
 
 ## Repository & Issue Management
-- **Repository**: `OpenizePtyLtd/fileformat-studio`
+- **Repository**: `OpenizePtyLtd/fileformat-guru` (formerly `OpenizePtyLtd/fileformat-studio`)
 - **Issue Tracking**: Managed in company **Redmine instance** (switched from GitHub Issues; historical tasks 1-65 remain mapped in `docs/master_tasks.md`).
 - **Redmine Configuration**:
   - Connection credentials (`REDMINE_URL`, `REDMINE_API_KEY`, `REDMINE_PROJECT_ID`, `REDMINE_ASSIGN_TO_ID`, `REDMINE_USER`, `REDMINE_CATEGORY_ID`) must always be read dynamically from the untracked `.env` file in the repository root.

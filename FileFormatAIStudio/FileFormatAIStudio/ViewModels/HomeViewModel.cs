@@ -8,14 +8,14 @@ namespace FileFormatAIStudio.ViewModels
     public partial class HomeViewModel : ObservableObject
     {
         [ObservableProperty]
-        private string _appName = "FileFormat Studio";
+        private string _appName = "FileFormat Guru";
 
         [ObservableProperty]
         private string _appVersion;
 
         [ObservableProperty]
         private string _appDescription =
-            "FileFormat Studio is an intelligent desktop workstation for file format automation, document processing, code generation, and multi-model AI workflows. Connect local or cloud AI models, manage chat sessions, and safeguard your credentials with Windows DPAPI encryption.";
+            "FileFormat Guru is an intelligent desktop workstation for file format automation, document processing, code generation, and multi-model AI workflows. Connect local or cloud AI models, manage chat sessions, and safeguard your credentials with Windows DPAPI encryption.";
 
         public event Action? StartNewChatRequested;
         public event Action? OpenSettingsRequested;

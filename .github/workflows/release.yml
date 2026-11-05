@@ -95,7 +95,7 @@ jobs:
         shell: pwsh
         run: |
           $publishDir = "FileFormatAIStudio\FileFormatAIStudio\bin\Release\net10.0-windows10.0.19041.0\win-x64\publish"
-          $zipName = "FileFormatAIStudio-Portable-win-x64.zip"
+          $zipName = "FileFormatGuru-Portable-win-x64.zip"
           Compress-Archive -Path "$publishDir\*" -DestinationPath $zipName -Force
           Write-Host "Created portable archive: $zipName"
 
@@ -112,9 +112,9 @@ jobs:
           $iscc = (Get-Command iscc.exe -ErrorAction SilentlyContinue)?.Source
           if (-not $iscc) { $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" }
           & $iscc /DAppVersion=$ver installer.iss
-          if (Test-Path "publish_installer\FileFormatAIStudio-Setup.exe") {
-              Copy-Item "publish_installer\FileFormatAIStudio-Setup.exe" "publish_installer\FileFormatAIStudio-$ver-Setup.exe"
-              Write-Host "Installer created successfully: publish_installer\FileFormatAIStudio-$ver-Setup.exe"
+          if (Test-Path "publish_installer\FileFormatGuru-Setup.exe") {
+              Copy-Item "publish_installer\FileFormatGuru-Setup.exe" "publish_installer\FileFormatGuru-$ver-Setup.exe"
+              Write-Host "Installer created successfully: publish_installer\FileFormatGuru-$ver-Setup.exe"
           } else {
               throw "Installer generation failed: output file not found."
           }
@@ -125,12 +125,12 @@ jobs:
           token: ${{ secrets.RELEASE_TOKEN }}
           tag_name: ${{ steps.get_version.outputs.RAW_TAG }}
           target_commitish: ${{ github.sha }}
-          name: "FileFormat AI Studio ${{ steps.get_version.outputs.RAW_TAG }}"
+          name: "FileFormat Guru ${{ steps.get_version.outputs.RAW_TAG }}"
           draft: ${{ github.event_name == 'workflow_dispatch' && inputs.draft || true }}
           prerelease: false
           generate_release_notes: true
           files: |
-            publish_installer/FileFormatAIStudio-Setup.exe
-            publish_installer/FileFormatAIStudio-*-Setup.exe
-            FileFormatAIStudio-Portable-win-x64.zip
+            publish_installer/FileFormatGuru-Setup.exe
+            publish_installer/FileFormatGuru-*-Setup.exe
+            FileFormatGuru-Portable-win-x64.zip
 

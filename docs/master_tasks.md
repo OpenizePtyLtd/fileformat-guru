@@ -1,6 +1,6 @@
-# Master Tasks Tracker: FileFormat AI Studio
+# Master Tasks Tracker: FileFormat Guru
 
-> **Repository:** OpenizePtyLtd/fileformat-studio  
+> **Repository:** OpenizePtyLtd/fileformat-guru (formerly OpenizePtyLtd/fileformat-studio)  
 > **Issue Tracking:** Company Redmine Instance  
 > **Tracker Purpose:** Single source of truth for all granular engineering tasks, architectural spikes, and feature implementation across project milestones.  
 > **Issue Management Policy:** All engineering tasks are tracked in the company Redmine instance. Project connection details and credentials (`REDMINE_URL`, `REDMINE_API_KEY`, `REDMINE_PROJECT_ID`, `REDMINE_ASSIGN_TO_ID`, `REDMINE_USER`, `REDMINE_CATEGORY_ID`) are read dynamically from the untracked `.env` file to ensure private endpoints remain secure and separate from public source control.
@@ -21,6 +21,7 @@
 | **M7: Release Engineering & Deployment Pipeline** | Windows installer packaging (Inno Setup), automated GitHub Actions monthly release pipeline with draft publishing, unpackaged Windows App SDK runtime bootstrapping, XAML PRI resource bundling, and desktop/installer brand iconography. | Production-ready desktop setup installer, portable ZIP archive, branded icons, and automated GitHub Releases. |
 | **M8: Document OCR & Multimodal Intelligence Pipeline** | Native Windows OCR (`Windows.Media.Ocr`), hybrid per-page PDF/Word/PowerPoint image extraction, noise filtering, standalone image ingestion (.png, .jpg), and AI multimodal diagram reasoning. | Fully integrated hybrid OCR and vision-augmented document ingestion and verification suite. |
 | **M9: Document Chat Attachments & Ephemeral Context Ingestion** | Drag-and-drop document attachments directly to chat sessions, real-time multi-format document parsing using engine preferences, context budgeting, chip management with text inspection, ephemeral in-memory chunking for oversized files, and grounded prompt augmentation with citations. | End-to-end ad-hoc document chat without requiring pre-indexed knowledgebases. |
+| **M10: Product Rebranding & Repository Alignment** | Rebrand desktop application, installer, manifests, assembly metadata, documentation, and repository to FileFormat Guru with zero runtime/database regression. | Fully aligned application and repository branding under FileFormat Guru. |
 
 ---
 
@@ -127,6 +128,7 @@
 | **TASK-111** | #136791 | 15. Document Chat Attachments | `feat(chat): implement ephemeral in-memory chunking for oversized attachments` | M9 | TASK-110 | ✅ Completed |
 | **TASK-112** | #136792 | 15. Document Chat Attachments | `test(chat): comprehensive unit and integration tests for document chat attachments` | M9 | TASK-106, TASK-107, TASK-110, TASK-111 | ✅ Completed |
 | **TASK-113** | #137569 | 16. Dependency Security & Hardening | `fix(deps): bump System.Security.Cryptography.Pkcs to 10.0.14 to remediate GHSA-846f-f764-76mx and GHSA-2fmv-rv2c-59x7` | M9 | TASK-02 | ✅ Completed |
+| **TASK-114** | #137572 | 17. Product Rebranding | `feat(branding): rebrand application and repository to FileFormat Guru` | M10 | TASK-96 | ✅ Completed |
 
 ---
 
@@ -361,6 +363,10 @@ flowchart TD
         T113["TASK-113 (#137569)<br/>Pkcs Vulnerability Remediation"]
     end
 
+    subgraph ProductRebrandingM10 ["Phase 17: Product Rebranding (M10)"]
+        T114["TASK-114 (#137572)<br/>Rebrand to FileFormat Guru"]
+    end
+
     %% M8 Dependencies
     T76 --> T97
     T97 --> T98
@@ -397,6 +403,9 @@ flowchart TD
 
     %% M9 Dependency Security
     T02 --> T113
+
+    %% M10 Dependencies
+    T96 --> T114
 ```
 
 ---

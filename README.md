@@ -1,4 +1,4 @@
-# 📁 FileFormat Studio
+# 📁 FileFormat Guru
 
 > **Chat with your documents locally & natively on Windows.**  
 > An open-source WinUI 3 desktop application that turns your Word, Excel, PowerPoint, and PDF files into an interactive AI knowledgebase.
@@ -22,13 +22,13 @@
 
 ## 📥 Installation & Releases
 
-Pre-compiled production releases are published on the [GitHub Releases](https://github.com/OpenizePtyLtd/fileformat-studio/releases) page.
+Pre-compiled production releases are published on the [GitHub Releases](https://github.com/OpenizePtyLtd/fileformat-guru/releases) page.
 
 1. **Standard Installer (Recommended):**
-   - Download `FileFormatAIStudio-Setup.exe` from the latest release.
+   - Download `FileFormatGuru-Setup.exe` from the latest release.
    - Run the installer wizard to set up shortcuts and install to Program Files.
 2. **Portable ZIP:**
-   - Download `FileFormatAIStudio-Portable-win-x64.zip`.
+   - Download `FileFormatGuru-Portable-win-x64.zip`.
    - Extract anywhere and run `FileFormatAIStudio.exe` directly (no installation or admin rights required).
 
 ---
@@ -47,6 +47,6 @@ The repository includes an automated GitHub Actions release workflow (`.github/w
 2. The workflow will:
    - Compile the self-contained WinUI 3 desktop application (`win-x64`).
    - Package `NodeHost` parsers and runtime dependencies.
-   - Generate `FileFormatAIStudio-Setup.exe` via Inno Setup and `FileFormatAIStudio-Portable-win-x64.zip`.
+   - Generate `FileFormatGuru-Setup.exe` via Inno Setup and `FileFormatGuru-Portable-win-x64.zip`.
    - Open a **Draft Release** on GitHub populated with categorized release notes.
-3. Review the release notes under [GitHub Releases](https://github.com/OpenizePtyLtd/fileformat-studio/releases) and click **Publish release**.
+3. Review the release notes under [GitHub Releases](https://github.com/OpenizePtyLtd/fileformat-guru/releases) and click **Publish release**.
