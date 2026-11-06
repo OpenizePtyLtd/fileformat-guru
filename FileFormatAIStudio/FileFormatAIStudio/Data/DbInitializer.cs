@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using FileFormatAIStudio.Data.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +20,9 @@ namespace FileFormatAIStudio.Data
 
             // Apply any pending EF Core migrations
             await context.Database.MigrateAsync();
+
+            // Seed FileFormat.com catalog into SQLite database if not present
+            await SeedFileFormatsCatalogAsync(context);
 
             // Check if default seeding has already taken place in history
             var seedSetting = await context.AppSettings.FirstOrDefaultAsync(s => s.Key == HasSeededDefaultProvidersKey);
@@ -185,6 +190,125 @@ namespace FileFormatAIStudio.Data
             {
                 System.Diagnostics.Debug.WriteLine($"[DbInitializer] Legacy database baseline check skipped: {ex.Message}");
             }
+        }
+
+        public static async Task SeedFileFormatsCatalogAsync(AppDbContext context)
+        {
+            if (await context.FileFormats.AnyAsync())
+            {
+                return;
+            }
+
+            string catalogPath = ResolveCatalogFilePath();
+            if (!File.Exists(catalogPath))
+            {
+                return;
+            }
+
+            try
+            {
+                string json = await File.ReadAllTextAsync(catalogPath);
+                using var doc = JsonDocument.Parse(json);
+                var root = doc.RootElement;
+
+                if (root.TryGetProperty("categories", out var categoriesElem) &&
+                    categoriesElem.ValueKind == JsonValueKind.Object)
+                {
+                    var entities = new List<FileFormatEntity>();
+
+                    foreach (var catProp in categoriesElem.EnumerateObject())
+                    {
+                        string catKey = catProp.Name;
+                        var catObj = catProp.Value;
+
+                        string asposeApi = catObj.TryGetProperty("aspose_api", out var aspElem)
+                            ? aspElem.GetString() ?? "" : "";
+                        string ossEngine = catObj.TryGetProperty("default_oss_engine", out var ossElem)
+                            ? ossElem.GetString() ?? "" : "";
+                        string catDisplayName = FormatCategoryDisplayName(catKey);
+
+                        if (catObj.TryGetProperty("formats", out var formatsElem) &&
+                            formatsElem.ValueKind == JsonValueKind.Array)
+                        {
+                            foreach (var fmtElem in formatsElem.EnumerateArray())
+                            {
+                                string ext = fmtElem.TryGetProperty("extension", out var extElem)
+                                    ? extElem.GetString() ?? "" : "";
+                                string name = fmtElem.TryGetProperty("name", out var nameElem)
+                                    ? nameElem.GetString() ?? "" : "";
+                                string docsUrl = fmtElem.TryGetProperty("docs_url", out var urlElem)
+                                    ? urlElem.GetString() ?? "" : "";
+                                string catalogStatus = fmtElem.TryGetProperty("status", out var statElem)
+                                    ? statElem.GetString() ?? "Planned" : "Planned";
+
+                                bool isSupported = string.Equals(catalogStatus, "Implemented", StringComparison.OrdinalIgnoreCase);
+
+                                entities.Add(new FileFormatEntity
+                                {
+                                    Extension = ext.ToLowerInvariant(),
+                                    Name = name,
+                                    Category = catKey,
+                                    CategoryDisplayName = catDisplayName,
+                                    DocsUrl = docsUrl,
+                                    IsSupported = isSupported,
+                                    Status = isSupported ? "Supported" : "Planned",
+                                    AsposeApi = asposeApi,
+                                    DefaultOssEngine = ossEngine,
+                                    Description = $"{name} ({ext}) specification in {catDisplayName} category.",
+                                    CreatedAtUtc = DateTime.UtcNow
+                                });
+                            }
+                        }
+                    }
+
+                    if (entities.Count > 0)
+                    {
+                        await context.FileFormats.AddRangeAsync(entities);
+                        await context.SaveChangesAsync();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[DbInitializer] File formats catalog seeding failed: {ex.Message}");
+            }
+        }
+
+        private static string ResolveCatalogFilePath()
+        {
+            var candidates = new[]
+            {
+                Path.Combine(AppContext.BaseDirectory, "Assets", "fileformat_com_catalog.json"),
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "fileformat_com_catalog.json"),
+                Path.Combine(Directory.GetCurrentDirectory(), "Assets", "fileformat_com_catalog.json"),
+                Path.Combine(AppContext.BaseDirectory, "fileformat_com_catalog.json"),
+                Path.Combine(Directory.GetCurrentDirectory(), "docs", "fileformat_com_catalog.json")
+            };
+
+            foreach (var path in candidates)
+            {
+                if (File.Exists(path))
+                    return path;
+            }
+
+            return candidates[0];
+        }
+
+        private static string FormatCategoryDisplayName(string key)
+        {
+            if (string.IsNullOrWhiteSpace(key))
+                return key;
+
+            var parts = key.Split('-', '_');
+            return string.Join(" ", parts.Select(p =>
+            {
+                if (string.Equals(p, "3d", StringComparison.OrdinalIgnoreCase)) return "3D";
+                if (string.Equals(p, "cad", StringComparison.OrdinalIgnoreCase)) return "CAD";
+                if (string.Equals(p, "gis", StringComparison.OrdinalIgnoreCase)) return "GIS";
+                if (string.Equals(p, "pdf", StringComparison.OrdinalIgnoreCase)) return "PDF";
+                if (p.Length <= 1) return p.ToUpperInvariant();
+                return char.ToUpperInvariant(p[0]) + p.Substring(1);
+            }));
         }
     }
 }

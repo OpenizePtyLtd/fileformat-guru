@@ -2,16 +2,41 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using FileFormatAIStudio.Data;
+using FileFormatAIStudio.Data.Entities;
 using FileFormatAIStudio.Services.Parsing;
 using FileFormatAIStudio.ViewModels;
 using FluentAssertions;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace FileFormatAIStudio.Tests
 {
-    public class FileFormatRegistryServiceTests
+    public class FileFormatRegistryServiceTests : IDisposable
     {
         private readonly FileFormatRegistryService _registryService = new();
+        private readonly SqliteConnection _connection;
+        private readonly DbContextOptions<AppDbContext> _dbOptions;
+
+        public FileFormatRegistryServiceTests()
+        {
+            _connection = new SqliteConnection("Data Source=:memory:");
+            _connection.Open();
+
+            _dbOptions = new DbContextOptionsBuilder<AppDbContext>()
+                .UseSqlite(_connection)
+                .Options;
+
+            using var context = new AppDbContext(_dbOptions);
+            context.Database.EnsureCreated();
+        }
+
+        public void Dispose()
+        {
+            _connection.Dispose();
+        }
 
         [Fact]
         public void RegistryService_LoadsCatalog_WithComprehensiveCoverage()
@@ -110,6 +135,48 @@ namespace FileFormatAIStudio.Tests
             vm.SearchQuery = "epub";
             vm.FilteredFormats.Should().Contain(f => f.Extension == ".epub");
         }
+
+        [Fact]
+        public async Task DbInitializer_SeedsFileFormatsCatalog_IntoSQLite()
+        {
+            using var context = new AppDbContext(_dbOptions);
+            await DbInitializer.SeedFileFormatsCatalogAsync(context);
+
+            var count = await context.FileFormats.CountAsync();
+            count.Should().BeGreaterThan(1400);
+
+            var docx = await context.FileFormats.FirstOrDefaultAsync(f => f.Extension == ".docx");
+            docx.Should().NotBeNull();
+            docx!.IsSupported.Should().BeTrue();
+            docx.Category.Should().Be("word-processing");
+            docx.AsposeApi.Should().Contain("Aspose.Words");
+
+            var epub = await context.FileFormats.FirstOrDefaultAsync(f => f.Extension == ".epub");
+            epub.Should().NotBeNull();
+            epub!.Category.Should().Be("ebook");
+            epub.IsSupported.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task FileFormatRegistryService_LoadsFromDatabase_WhenScopeProvided()
+        {
+            // Seed database
+            using (var context = new AppDbContext(_dbOptions))
+            {
+                await DbInitializer.SeedFileFormatsCatalogAsync(context);
+            }
+
+            // Create service provider with DbContext
+            var services = new ServiceCollection();
+            services.AddScoped(_ => new AppDbContext(_dbOptions));
+            var serviceProvider = services.BuildServiceProvider();
+            var scopeFactory = serviceProvider.GetRequiredService<IServiceScopeFactory>();
+
+            var dbRegistry = new FileFormatRegistryService(scopeFactory);
+            dbRegistry.TotalFormatsCount.Should().BeGreaterThan(1400);
+            dbRegistry.IsSupported(".docx").Should().BeTrue();
+            dbRegistry.IsSupported(".pdf").Should().BeTrue();
+            dbRegistry.IsSupported(".epub").Should().BeFalse();
+        }
     }
 }
-

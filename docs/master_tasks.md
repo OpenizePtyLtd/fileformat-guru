@@ -141,6 +141,8 @@
 | **TASK-123** | #137581 | 25. Structured Data & Analytics | `feat(parser): implement StructuredDataParser for Parquet and SQLite table schema and record summaries` | M11 | TASK-115 | ⏳ Planned |
 | **TASK-124** | #137582 | 26. UI & Format Directory | `feat(ui): implement File Formats Explorer and Compatibility Directory page in WinUI 3` | M11 | TASK-115 | ✅ Completed |
 | **TASK-125** | #137583 | 27. Verification & Benchmarking | `test(format): comprehensive unit and integration tests for M11 multi-format parser engines and registry service` | M11 | TASK-116, TASK-117, TASK-118, TASK-119, TASK-120, TASK-121, TASK-122, TASK-123 | ⏳ Planned |
+| **TASK-126** | #137584 | 18. Format Registry & Architecture | `feat(data): add FileFormatEntity and EF Core migration for file format catalog table` | M11 | TASK-115 | ✅ Completed |
+| **TASK-127** | #137585 | 18. Format Registry & Architecture | `feat(data): implement catalog database seeder in DbInitializer and update FileFormatRegistryService to SQLite persistence` | M11 | TASK-126 | ✅ Completed |
 
 ---
 
@@ -432,6 +434,8 @@ flowchart TD
         T123["TASK-123 (#137581)<br/>Data (Parquet/SQLite)"]
         T124["TASK-124 (#137582)<br/>Formats Explorer UI"]
         T125["TASK-125 (#137583)<br/>Format Engine Tests"]
+        T126["TASK-126 (#137584)<br/>FileFormat EF Entity"]
+        T127["TASK-127 (#137585)<br/>SQLite Format Seeder"]
 
         T115 --> T116
         T115 --> T117
@@ -442,6 +446,9 @@ flowchart TD
         T115 --> T122
         T115 --> T123
         T115 --> T124
+        T115 --> T126
+        T126 --> T127
+        T127 --> T124
         T116 --> T125
         T117 --> T125
         T118 --> T125

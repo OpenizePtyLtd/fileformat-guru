@@ -23,6 +23,7 @@ namespace FileFormatAIStudio.Data
         public DbSet<BenchmarkRunResultEntity> BenchmarkRunResults => Set<BenchmarkRunResultEntity>();
         public DbSet<BenchmarkMetricResultEntity> BenchmarkMetricResults => Set<BenchmarkMetricResultEntity>();
         public DbSet<ChatSessionAttachmentEntity> ChatSessionAttachments => Set<ChatSessionAttachmentEntity>();
+        public DbSet<FileFormatEntity> FileFormats => Set<FileFormatEntity>();
 
         public AppDbContext()
         {
@@ -184,6 +185,21 @@ namespace FileFormatAIStudio.Data
 
                 entity.HasIndex(a => a.SessionId)
                     .HasDatabaseName("IX_ChatSessionAttachments_SessionId");
+            });
+
+            // FileFormatEntity Configuration & Indexes
+            modelBuilder.Entity<FileFormatEntity>(entity =>
+            {
+                entity.HasKey(f => f.Id);
+                entity.HasIndex(f => new { f.Extension, f.Category })
+                    .IsUnique()
+                    .HasDatabaseName("IX_FileFormats_Extension_Category");
+                entity.HasIndex(f => f.Extension)
+                    .HasDatabaseName("IX_FileFormats_Extension");
+                entity.HasIndex(f => f.Category)
+                    .HasDatabaseName("IX_FileFormats_Category");
+                entity.HasIndex(f => f.IsSupported)
+                    .HasDatabaseName("IX_FileFormats_IsSupported");
             });
         }
     }
