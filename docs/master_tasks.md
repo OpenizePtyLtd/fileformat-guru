@@ -22,6 +22,7 @@
 | **M8: Document OCR & Multimodal Intelligence Pipeline** | Native Windows OCR (`Windows.Media.Ocr`), hybrid per-page PDF/Word/PowerPoint image extraction, noise filtering, standalone image ingestion (.png, .jpg), and AI multimodal diagram reasoning. | Fully integrated hybrid OCR and vision-augmented document ingestion and verification suite. |
 | **M9: Document Chat Attachments & Ephemeral Context Ingestion** | Drag-and-drop document attachments directly to chat sessions, real-time multi-format document parsing using engine preferences, context budgeting, chip management with text inspection, ephemeral in-memory chunking for oversized files, and grounded prompt augmentation with citations. | End-to-end ad-hoc document chat without requiring pre-indexed knowledgebases. |
 | **M10: Product Rebranding & Repository Alignment** | Rebrand desktop application, installer, manifests, assembly metadata, documentation, and repository to FileFormat Guru with zero runtime/database regression. | Fully aligned application and repository branding under FileFormat Guru. |
+| **M11: Universal Format Support & FileFormat.com Format Index** | Master file format index aligning FileFormat Guru with fileformat.com taxonomy (90+ formats across 17 categories), open-source vs Aspose parser mappings, conversational extraction engines (EBooks, Emails, Archives, Audio Whisper, Diagrams, Project Management, Structured Data), and in-app Format Compatibility Explorer. | Comprehensive format registry, expanded multi-category parser suite for talking to any file, and in-app File Formats Directory. |
 
 ---
 
@@ -129,6 +130,17 @@
 | **TASK-112** | #136792 | 15. Document Chat Attachments | `test(chat): comprehensive unit and integration tests for document chat attachments` | M9 | TASK-106, TASK-107, TASK-110, TASK-111 | ✅ Completed |
 | **TASK-113** | #137569 | 16. Dependency Security & Hardening | `fix(deps): bump System.Security.Cryptography.Pkcs to 10.0.14 to remediate GHSA-846f-f764-76mx and GHSA-2fmv-rv2c-59x7` | M9 | TASK-02 | ✅ Completed |
 | **TASK-114** | #137572 | 17. Product Rebranding | `feat(branding): rebrand application and repository to FileFormat Guru` | M10 | TASK-96 | ✅ Completed |
+| **TASK-115** | #137573 | 18. Format Registry & Architecture | `feat(registry): implement IFileFormatRegistryService and catalog schema matching fileformat.com taxonomy` | M11 | TASK-87 | ✅ Completed |
+| **TASK-116** | #137574 | 19. E-Books & Publications | `feat(parser): implement EBookDocumentParser supporting EPUB, MOBI, and FB2 publications` | M11 | TASK-115 | ⏳ Planned |
+| **TASK-117** | #137575 | 20. Email & Personal Info | `feat(parser): implement EmailDocumentParser for EML, MSG, and MBOX message threads with attachment traversal` | M11 | TASK-115 | ⏳ Planned |
+| **TASK-118** | #137576 | 21. Archives & Container Bundles | `feat(parser): implement ArchiveDocumentParser for ZIP, TAR, and 7Z bundles with automatic inner document parsing` | M11 | TASK-115 | ⏳ Planned |
+| **TASK-119** | #137577 | 22. Audio & Speech Transcripts | `feat(parser): implement AudioTranscriptParser with local Whisper.net transcription for MP3, WAV, and M4A voice files` | M11 | TASK-115 | ⏳ Planned |
+| **TASK-120** | #137578 | 22. Audio & Speech Transcripts | `feat(parser): implement SubtitleDocumentParser for SRT and VTT timecoded transcripts` | M11 | TASK-115 | ⏳ Planned |
+| **TASK-121** | #137579 | 23. Diagrams & Visual Workflows | `feat(parser): implement DiagramDocumentParser for Visio VSDX and Draw.io visual workflows` | M11 | TASK-115 | ⏳ Planned |
+| **TASK-122** | #137580 | 24. Project Management | `feat(parser): implement ProjectScheduleParser for Microsoft Project MPP and XML schedules` | M11 | TASK-115 | ⏳ Planned |
+| **TASK-123** | #137581 | 25. Structured Data & Analytics | `feat(parser): implement StructuredDataParser for Parquet and SQLite table schema and record summaries` | M11 | TASK-115 | ⏳ Planned |
+| **TASK-124** | #137582 | 26. UI & Format Directory | `feat(ui): implement File Formats Explorer and Compatibility Directory page in WinUI 3` | M11 | TASK-115 | ✅ Completed |
+| **TASK-125** | #137583 | 27. Verification & Benchmarking | `test(format): comprehensive unit and integration tests for M11 multi-format parser engines and registry service` | M11 | TASK-116, TASK-117, TASK-118, TASK-119, TASK-120, TASK-121, TASK-122, TASK-123 | ⏳ Planned |
 
 ---
 
@@ -406,6 +418,41 @@ flowchart TD
 
     %% M10 Dependencies
     T96 --> T114
+
+    %% M11 Subgraph & Dependencies
+    subgraph M11Formats ["Phase 18-27: Universal Format Support (M11)"]
+        T115["TASK-115 (#137573)<br/>File Format Registry"]
+        T116["TASK-116 (#137574)<br/>E-Books (EPUB/MOBI)"]
+        T117["TASK-117 (#137575)<br/>Email (EML/MSG/PST)"]
+        T118["TASK-118 (#137576)<br/>Archives (ZIP/TAR/7Z)"]
+        T119["TASK-119 (#137577)<br/>Audio Whisper STT"]
+        T120["TASK-120 (#137578)<br/>Subtitles (SRT/VTT)"]
+        T121["TASK-121 (#137579)<br/>Diagrams (VSDX/Drawio)"]
+        T122["TASK-122 (#137580)<br/>Project (MPP/XML)"]
+        T123["TASK-123 (#137581)<br/>Data (Parquet/SQLite)"]
+        T124["TASK-124 (#137582)<br/>Formats Explorer UI"]
+        T125["TASK-125 (#137583)<br/>Format Engine Tests"]
+
+        T115 --> T116
+        T115 --> T117
+        T115 --> T118
+        T115 --> T119
+        T115 --> T120
+        T115 --> T121
+        T115 --> T122
+        T115 --> T123
+        T115 --> T124
+        T116 --> T125
+        T117 --> T125
+        T118 --> T125
+        T119 --> T125
+        T120 --> T125
+        T121 --> T125
+        T122 --> T125
+        T123 --> T125
+    end
+
+    T87 --> T115
 ```
 
 ---

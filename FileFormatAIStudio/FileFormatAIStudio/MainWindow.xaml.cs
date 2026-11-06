@@ -118,6 +118,11 @@ namespace FileFormatAIStudio
                 SessionsListView.SelectedItem = null;
                 ContentFrame.Navigate(typeof(DocumentLibrariesPage));
             }
+            else if (args.SelectedItemContainer == FileFormatsNavItem || (args.SelectedItem as NavigationViewItem)?.Tag?.ToString() == "FileFormats")
+            {
+                SessionsListView.SelectedItem = null;
+                ContentFrame.Navigate(typeof(FileFormatsPage));
+            }
         }
 
         private void OnBackRequested(NavigationView sender, NavigationViewBackRequestedEventArgs args)
